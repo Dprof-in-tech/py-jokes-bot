@@ -23,7 +23,7 @@ A fun, interactive joke bot built with LangGraph that demonstrates agentic state
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone <[py-jokes-bot](https://github.com/Dprof-in-tech/py-jokes-bot.git)>
    cd langgraph-joke-bot
    ```
 
