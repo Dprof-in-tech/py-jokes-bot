@@ -5,6 +5,7 @@ import os
 from pyjokes import get_joke
 from langgraph.graph import StateGraph, END
 from langgraph.graph.state import CompiledStateGraph
+from langchain_core.runnables.graph import MermaidDrawMethod 
 from IPython.display import Image, display
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -92,13 +93,25 @@ def print_language_menu():
     print("=" * 60)
 
 def graph_visualiser(graph):
+    """
+    Visualize the graph using Mermaid with Pyppeteer method
+    """
     try:
-
-        display(Image(graph.get_graph().draw_mermaid_png()))
-
+        # Correct syntax for using MermaidDrawMethod.PYPPETEER
+        display(Image(graph.get_graph().draw_mermaid_png(
+            draw_method=MermaidDrawMethod.API
+        )))
+        
     except Exception as e:
-
-        print(e)
+        print(f"Error generating graph visualization: {e}")
+        print("Falling back to text representation...")
+        
+        # Fallback to text-based mermaid diagram
+        try:
+            print("\n📊 === MERMAID DIAGRAM (TEXT) ===")
+            print(display(Image(graph.get_graph().draw_mermaid())))
+        except Exception as fallback_error:
+            print(f"Fallback also failed: {fallback_error}")
 
 
 # ===================
@@ -325,7 +338,7 @@ def main():
 
     #print("\n📊 === MERMAID DIAGRAM ===")
     #print(graph.get_graph().draw_mermaid())
-    #graph_visualiser(build_joke_graph())
+    graph_visualiser(graph)
 
     print("\n" + "🚀" + "=" * 58 + "🚀")
     print("    STARTING JOKE BOT SESSION...")

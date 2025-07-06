@@ -1,5 +1,6 @@
 annotated-types==0.7.0
 anyio==4.9.0
+appdirs==1.4.4
 asttokens==3.0.0
 certifi==2025.6.15
 charset-normalizer==3.4.2
@@ -11,6 +12,7 @@ h11==0.16.0
 httpcore==1.0.9
 httpx==0.28.1
 idna==3.10
+importlib_metadata==8.7.0
 ipython==9.4.0
 ipython_pygments_lexers==1.1.1
 jedi==0.19.2
@@ -35,6 +37,7 @@ ptyprocess==0.7.0
 pure_eval==0.2.3
 pydantic==2.11.7
 pydantic_core==2.33.2
+pyee==11.1.1
 Pygments==2.19.2
 pyjokes==0.8.3
 python-dotenv==1.1.1
@@ -49,7 +52,9 @@ traitlets==5.14.3
 typing==3.7.4.3
 typing-inspection==0.4.1
 typing_extensions==4.14.1
-urllib3==2.5.0
+urllib3==1.26.20
 wcwidth==0.2.13
+websockets==10.4
 xxhash==3.5.0
+zipp==3.23.0
 zstandard==0.23.0
