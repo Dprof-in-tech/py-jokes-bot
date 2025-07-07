@@ -1,6 +1,5 @@
 from typing import Annotated, List, Union, Literal
 from pydantic import BaseModel
-#from operator import add
 import os
 from pyjokes import get_joke
 from langgraph.graph import StateGraph, END
@@ -132,17 +131,49 @@ def show_menu(state: JokeState) -> dict:
         )
     return {"jokes_choice": user_input}
 
-# original fetch joke that gets joke from pyjokes
-
-# def fetch_joke(state: JokeState) -> dict:
-#     joke_text = get_joke(language=state.language, category=state.category)
-#     new_joke = Joke(text=joke_text, category=state.category, language=state.language)
-#     print_joke(new_joke)
-#     return {"jokes": new_joke}  # LangGraph will use the add reducer to append this
-
 # new fetch joke with api call
 
-def fetch_joke(state: JokeState) -> dict:
+def critic(state: JokeState, joke_text) -> dict:
+    system_prompt = (
+        "You are an experienced comedian critic with 25 years of criticizing standup comedy experience. "
+        "You make sure the jokes are warm, friendly, and genuinely funny. "
+        "You make sure the joke is easily understood."
+        "you respond with a yes if the joke fits your criteria and with a no if the joke is not approved."
+        "The end goal is to make sure the user doesnt get a bad joke."
+    )
+    
+    user_prompt = (
+        f"Please criticize this joke : {joke_text} "
+    )
+    
+    try:
+        response = openai.chat.completions.create(
+            model='chatgpt-4o-latest',
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=400,
+            temperature=0.7
+        )
+        
+        approved = response.choices[0].message.content.strip()
+        approval = "Yes" in approved
+        if approval:
+            new_joke = Joke(text=joke_text, category=state.category, language=state.language)
+            print_joke(new_joke)
+
+            return {"jokes": new_joke}
+        else:
+            print(f"joke not approved, writing another joke")
+            return writer(state)
+   
+        
+    except Exception as e:        
+        print(f"error analyzing joke")
+
+
+def writer(state: JokeState) -> dict:
     
     # Language mapping for better prompts
     language_names = {
@@ -188,10 +219,7 @@ def fetch_joke(state: JokeState) -> dict:
         )
         
         joke_text = response.choices[0].message.content.strip()
-        new_joke = Joke(text=joke_text, category=state.category, language=state.language)
-        print_joke(new_joke)
-        
-        return {"jokes": new_joke}
+        return critic(state, joke_text)
         
     except Exception as e:        
         fallback_joke_text = get_joke(language=state.language, category=state.category)
@@ -267,7 +295,7 @@ def route_choice(state: JokeState) -> str:
     Keys must match the target node names.
     """
     if state.jokes_choice == "n":
-        return "fetch_joke"
+        return "writer"
     elif state.jokes_choice == "c":
         return "update_category"
     elif state.jokes_choice == "q":
@@ -290,7 +318,7 @@ def build_joke_graph() -> CompiledStateGraph:
 
     # Register nodes
     workflow.add_node("show_menu", show_menu)
-    workflow.add_node("fetch_joke", fetch_joke)
+    workflow.add_node("writer", writer)
     workflow.add_node("update_category", update_category)
     workflow.add_node("change_language", change_language)
     workflow.add_node("reset_jokes", reset_jokes)
@@ -304,7 +332,7 @@ def build_joke_graph() -> CompiledStateGraph:
         "show_menu",
         route_choice,
         {
-            "fetch_joke": "fetch_joke",
+            "writer": "writer",
             "update_category": "update_category",
             "change_language": "change_language",
             "reset_jokes": "reset_jokes",
@@ -313,7 +341,7 @@ def build_joke_graph() -> CompiledStateGraph:
     )
 
     # Define transitions
-    workflow.add_edge("fetch_joke", "show_menu")
+    workflow.add_edge("writer", "show_menu")
     workflow.add_edge("update_category", "show_menu")
     workflow.add_edge("change_language", "show_menu")
     workflow.add_edge("reset_jokes","show_menu")

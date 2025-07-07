@@ -119,6 +119,7 @@ The bot requires the following packages (see `requirements.txt`):
 ```
 langgraph-joke-bot/
 ├── main.py              # Main application file
+├── writer-critic-agent.py  # Multi agent with joke writer and joke critic agents
 ├── requirements.txt     # Python dependencies
 ├── README.md           # This file
 └── .env                # Environment variables (optional)
