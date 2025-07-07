@@ -9,14 +9,16 @@ from langchain_core.runnables.graph import MermaidDrawMethod
 from IPython.display import Image, display
 from openai import OpenAI
 from dotenv import load_dotenv
+from langsmith.wrappers import wrap_openai
+from langsmith import traceable
 
 load_dotenv()
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
-openai = OpenAI(
+openai = wrap_openai(OpenAI(
     api_key=OPENAI_API_KEY
-)
+))
 
 
 
@@ -326,7 +328,7 @@ def build_joke_graph() -> CompiledStateGraph:
 # Main Entry
 # ===================
 
-
+@traceable # Auto-trace this function
 def main():
     print("\n" + "🎉" + "=" * 58 + "🎉")
     print("    WELCOME TO THE LANGGRAPH JOKE BOT!")
