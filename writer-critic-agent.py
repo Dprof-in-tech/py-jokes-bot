@@ -166,14 +166,14 @@ def critic(state: JokeState, joke_text) -> dict:
             return {"jokes": new_joke}
         else:
             print(f"joke not approved, writing another joke")
-            return writer(state)
+            return {"approved" : False}
    
         
     except Exception as e:        
         print(f"error analyzing joke")
 
 
-def writer(state: JokeState) -> dict:
+def writer(state: JokeState, retry_count: int = 0) -> dict:
     
     # Language mapping for better prompts
     language_names = {
@@ -204,7 +204,7 @@ def writer(state: JokeState) -> dict:
     )
     
     user_prompt = (
-        f"Please tell me a {category_desc} joke in {language_name}. "
+        f"Please tell me a new {category_desc} joke in {language_name}. "
     )
     
     try:
@@ -219,7 +219,25 @@ def writer(state: JokeState) -> dict:
         )
         
         joke_text = response.choices[0].message.content.strip()
-        return critic(state, joke_text)
+        # Send joke to critic
+        critic_result = critic(state, joke_text)
+        
+        # If joke was approved, return it
+        if "jokes" in critic_result:
+            return critic_result
+        
+        # If joke was not approved and we haven't hit retry limit, try again
+        if retry_count < 5:
+            print(f"🔄 Joke not approved, trying again... (Attempt {retry_count + 1}/5)")
+            return writer(state, retry_count + 1)
+        else:
+            # Hit retry limit, use fallback
+            print("❌ Unable to generate approved joke after 5 attempts. Using fallback joke.")
+            fallback_joke_text = get_joke(language=state.language, category=state.category)
+            new_joke = Joke(text=fallback_joke_text, category=state.category, language=state.language)
+            print_joke(new_joke)
+        
+            return {"jokes": new_joke}
         
     except Exception as e:        
         fallback_joke_text = get_joke(language=state.language, category=state.category)
